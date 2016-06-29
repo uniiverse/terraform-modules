@@ -4,11 +4,7 @@ variable "namespace" {
   description = "i.e. staging, production, or an ad-hoc group of services"
 }
 variable "task_definition_template" {}
-variable "repository_name" {}
-variable "repository_tag" {
-  default = "latest"
-}
-variable "aws_account_id" {}
+variable "docker_image_url" {}
 variable "desired_count" {
   default = 1
 }
@@ -38,7 +34,7 @@ resource "template_file" "task_definition" {
   template = "${var.task_definition_template}"
   vars {
     name = "${var.name}"
-    repository_url = "${var.aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/${var.repository_name}:${var.repository_tag}"
+    docker_image_url = "${var.docker_image_url}"
     container_port = "${var.container_port}"
     namespace = "${var.namespace}"
     subdomain = "${coalesce(var.subdomain, var.name)}"
