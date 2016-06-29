@@ -10,7 +10,8 @@ variable "etcd_key_prefix" {
 }
 
 variable "haproxy_docker_url" {
-  description = "i.e. 130059590535.dkr.ecr.us-east-1.amazonaws.com/universe/haproxy:latest"
+  description = "haproxy + confd docker image"
+  default = "uniiverse/haproxy"
 }
 
 variable "image_id" {

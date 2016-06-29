@@ -44,7 +44,7 @@ variable "docker_login_url" {
   default = "uniiverse/ecr-login:latest"
 }
 variable "docker_register_url" {
-  default = "130059590535.dkr.ecr.us-east-1.amazonaws.com/universe/register:latest"
+  default = "uniiverse/docker-register:latest"
 }
 
 resource "aws_launch_configuration" "cluster" {
