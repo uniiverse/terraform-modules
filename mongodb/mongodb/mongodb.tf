@@ -6,6 +6,7 @@ variable "mongodb_conf_engine"      {}
 variable "mongodb_conf_replsetname" {}
 variable "mongodb_conf_oplogsizemb" {}
 variable "mongodb_key_s3_object"    {}
+variable "mongodb_ssl_s3_object"    {}
 variable "opsmanager_key_s3_object" {}
 variable "mongodb_iam_name"         {}
 variable "mongodb_sg_id"            {}
@@ -63,6 +64,7 @@ resource "template_file" "user_data" {
     mongodb_conf_replsetname = "${var.mongodb_conf_replsetname}"
     mongodb_conf_oplogsizemb = "${var.mongodb_conf_oplogsizemb}"
     mongodb_key_s3_object    = "${var.mongodb_key_s3_object}"
+    mongodb_ssl_s3_object    = "${var.mongodb_ssl_s3_object}"
     opsmanager_key_s3_object = "${var.opsmanager_key_s3_object}"
     opsmanager_subdomain     = "${var.opsmanager_subdomain}"
     hostname                 = "${var.route53_hostname}"
