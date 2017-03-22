@@ -38,7 +38,7 @@ resource "aws_autoscaling_policy" "asg_scale_out" {
   name                     = "${var.asg_name}appScaleOutCpuUtilization"
   autoscaling_group_name   = "${var.asg_name}"
   adjustment_type          = "ChangeInCapacity"
-  scaling_adjustment       = "${var.asg_scaling_out_instance_delta}"
+  scaling_adjustment       = "${var.asg_scale_out_instance_delta}"
   cooldown                 = "${var.scale_out_cooldown}"
   policy_type              = "SimpleScaling"
 }
@@ -48,7 +48,7 @@ resource "aws_autoscaling_policy" "asg_scale_in" {
   name                     = "${var.asg_name}appScaleInCpuUtilization"
   autoscaling_group_name   = "${var.asg_name}"
   adjustment_type          = "ChangeInCapacity"
-  scaling_adjustment       = "${var.asg_scaling_in_instance_delta}"
+  scaling_adjustment       = "${var.asg_scale_in_instance_delta}"
   cooldown                 = "${var.scale_in_cooldown}"
   policy_type              = "SimpleScaling"
 }
