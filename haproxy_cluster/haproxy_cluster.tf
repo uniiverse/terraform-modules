@@ -82,7 +82,7 @@ resource "aws_launch_configuration" "haproxy_cluster" {
   iam_instance_profile = "${aws_iam_instance_profile.haproxy_cluster.name}"
   key_name = "${var.key_name}"
   security_groups = ["${aws_security_group.haproxy_cluster.name}"]
-  user_data = "${template_file.cloud_config.rendered}"
+  user_data = "${data.template_file.cloud_config.rendered}"
 
   root_block_device {
     volume_size = 64
@@ -174,7 +174,7 @@ resource "aws_iam_instance_profile" "haproxy_cluster" {
   }
 }
 
-resource "template_file" "cloud_config" {
+data "template_file" "cloud_config" {
   template = <<EOF
 #cloud-config
 coreos:
@@ -195,22 +195,22 @@ coreos:
        Restart=always
        ExecStartPre=-/usr/bin/docker stop haproxy
        ExecStartPre=-/usr/bin/docker rm haproxy
-       ExecStartPre=/bin/bash -c "eval $(docker run --rm ${docker_login_url})"
-       ExecStartPre=/bin/bash -c "docker pull ${haproxy_docker_url}"
+       ExecStartPre=/bin/bash -c "eval $(docker run --rm $${docker_login_url})"
+       ExecStartPre=/bin/bash -c "docker pull $${haproxy_docker_url}"
        ExecStart=/bin/bash -c "docker run --name haproxy \
                                                    --rm \
                                                    -p 8080:8080 \
                                                    -p 1000:1000 \
-                                                   -e ETCD_KEY_PREFIX=${etcd_key_prefix} \
-                                                   -e ETCD_NODE=${etcd_proto}://${etcd_host} \
-                                                   -e ETCD_USER=${etcd_user} \
-                                                   -e ETCD_PASS=${etcd_pass} \
-                                                   -e ETCD_CACERT=${etcd_cacert} \
-                                                   ${haproxy_docker_url}"
+                                                   -e ETCD_KEY_PREFIX=$${etcd_key_prefix} \
+                                                   -e ETCD_NODE=$${etcd_proto}://$${etcd_host} \
+                                                   -e ETCD_USER=$${etcd_user} \
+                                                   -e ETCD_PASS=$${etcd_pass} \
+                                                   -e ETCD_CACERT=$${etcd_cacert} \
+                                                   $${haproxy_docker_url}"
        ExecStop=/usr/bin/docker stop haproxy
    -
      name: logspout.service
-     command: ${logspout_command}
+     command: $${logspout_command}
      runtime: true
      content: |
        [Unit]
@@ -223,7 +223,7 @@ coreos:
                                      -d \
                                      -v=/var/run/docker.sock:/var/run/docker.sock \
                                      gliderlabs/logspout \
-                                     ${logspout_dest}
+                                     $${logspout_dest}
 EOF
 
   vars {
@@ -237,9 +237,5 @@ EOF
     logspout_dest = "${coalesce(var.logspout_dest, "disabled")}"
     docker_login_url = "${var.docker_login_url}"
     haproxy_docker_url = "${var.haproxy_docker_url}"
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
