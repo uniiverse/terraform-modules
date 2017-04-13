@@ -55,10 +55,10 @@ resource "aws_launch_configuration" "cluster" {
   security_groups = ["${aws_security_group.cluster.name}"]
   key_name = "${var.key_name}"
 
-  user_data = "${template_file.cloud_config.rendered}"
+  user_data = "${data.template_file.cloud_config.rendered}"
 }
 
-resource "template_file" "cloud_config" {
+data "template_file" "cloud_config" {
   template = <<EOF
 #cloud-config
 coreos:
@@ -95,13 +95,13 @@ coreos:
                                      --env=ECS_LOGFILE=/log/ecs-agent.log \
                                      --env=ECS_LOGLEVEL=info \
                                      --env=ECS_DATADIR=/data \
-                                     --env=ECS_CLUSTER=${cluster_name} \
+                                     --env=ECS_CLUSTER=$${cluster_name} \
                                      amazon/amazon-ecs-agent:latest
    -
      name: docker-register.service
-     command: ${service_command}
+     command: $${service_command}
      runtime: true
-     mask: ${service_mask}
+     mask: $${service_mask}
      content: |
        [Unit]
        Description=docker-register
@@ -113,25 +113,25 @@ coreos:
        Restart=always
        ExecStartPre=-/usr/bin/docker kill docker-register
        ExecStartPre=-/usr/bin/docker rm docker-register
-       ExecStartPre=/bin/sh -c "`/usr/bin/docker run --rm ${docker_login_url}`"
-       ExecStartPre=/bin/sh -c "/usr/bin/docker pull ${docker_register_url}"
+       ExecStartPre=/bin/sh -c "`/usr/bin/docker run --rm $${docker_login_url}`"
+       ExecStartPre=/bin/sh -c "/usr/bin/docker pull $${docker_register_url}"
        ExecStart=/bin/sh -c "/usr/bin/docker run --name docker-register \
                                      --rm \
                                      -e HOST_IP=`curl http://169.254.169.254/latest/meta-data/local-ipv4` \
-                                     -e ETCD_HOST=${etcd_host} \
-                                     -e ETCD_USER=${etcd_user} \
-                                     -e ETCD_PASS=${etcd_pass} \
-                                     -e ETCD_PROTO=${etcd_proto} \
-                                     -e ETCD_CACERT=${etcd_cacert} \
+                                     -e ETCD_HOST=$${etcd_host} \
+                                     -e ETCD_USER=$${etcd_user} \
+                                     -e ETCD_PASS=$${etcd_pass} \
+                                     -e ETCD_PROTO=$${etcd_proto} \
+                                     -e ETCD_CACERT=$${etcd_cacert} \
                                      -v /var/run/docker.sock:/var/run/docker.sock \
-                                     ${docker_register_url}"
+                                     $${docker_register_url}"
        ExecStop=/usr/bin/docker stop docker-register
 
        [X-Fleet]
        Global=true
    -
      name: logspout.service
-     command: ${logspout_command}
+     command: $${logspout_command}
      runtime: true
      content: |
        [Unit]
@@ -144,7 +144,7 @@ coreos:
                                      -d \
                                      -v=/var/run/docker.sock:/var/run/docker.sock \
                                      gliderlabs/logspout \
-                                     ${logspout_dest}
+                                     $${logspout_dest}
 EOF
 
   vars {
