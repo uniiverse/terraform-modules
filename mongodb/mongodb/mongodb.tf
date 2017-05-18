@@ -53,7 +53,7 @@ variable "mms_password" {
   default = ""
 }
 
-resource "template_file" "user_data" {
+data "template_file" "user_data" {
   template = "${file("${path.module}/templates/user-data.sh")}"
   vars {
     mongodb_version          = "${var.mongodb_version}"
@@ -82,7 +82,7 @@ resource "aws_instance" "mongodb" {
   ami                  = "${var.ec2_ami_id}"
   instance_type        = "${var.ec2_instance_type}"
   key_name             = "mongodb"
-  user_data            = "${template_file.user_data.rendered}"
+  user_data            = "${data.template_file.user_data.rendered}"
   iam_instance_profile = "${var.mongodb_iam_name}"
   vpc_security_group_ids = ["${var.mongodb_sg_id}"]
   subnet_id            = "${var.subnet_id}"
