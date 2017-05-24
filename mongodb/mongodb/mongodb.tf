@@ -6,7 +6,6 @@ variable "mongodb_conf_engine"      {}
 variable "mongodb_conf_replsetname" {}
 variable "mongodb_conf_oplogsizemb" {}
 variable "mongodb_key_s3_object"    {}
-variable "mongodb_ssl_s3_object"    {}
 variable "opsmanager_key_s3_object" {}
 variable "mongodb_iam_name"         {}
 variable "mongodb_sg_id"            {}
@@ -54,7 +53,7 @@ variable "mms_password" {
   default = ""
 }
 
-resource "template_file" "user_data" {
+data "template_file" "user_data" {
   template = "${file("${path.module}/templates/user-data.sh")}"
   vars {
     mongodb_version          = "${var.mongodb_version}"
@@ -64,7 +63,6 @@ resource "template_file" "user_data" {
     mongodb_conf_replsetname = "${var.mongodb_conf_replsetname}"
     mongodb_conf_oplogsizemb = "${var.mongodb_conf_oplogsizemb}"
     mongodb_key_s3_object    = "${var.mongodb_key_s3_object}"
-    mongodb_ssl_s3_object    = "${var.mongodb_ssl_s3_object}"
     opsmanager_key_s3_object = "${var.opsmanager_key_s3_object}"
     opsmanager_subdomain     = "${var.opsmanager_subdomain}"
     hostname                 = "${var.route53_hostname}"
@@ -84,7 +82,7 @@ resource "aws_instance" "mongodb" {
   ami                  = "${var.ec2_ami_id}"
   instance_type        = "${var.ec2_instance_type}"
   key_name             = "mongodb"
-  user_data            = "${template_file.user_data.rendered}"
+  user_data            = "${data.template_file.user_data.rendered}"
   iam_instance_profile = "${var.mongodb_iam_name}"
   vpc_security_group_ids = ["${var.mongodb_sg_id}"]
   subnet_id            = "${var.subnet_id}"

@@ -175,11 +175,6 @@ if [ "${role_node}" == "true" ]; then
   mkdir -p ${mongodb_basedir}
   chown mongodb:mongodb ${mongodb_basedir}
 
-  SSL_KEY_PATH=${mongodb_basedir}/mongodb-ssl.pem
-  aws s3 --region=${aws_region} cp ${mongodb_ssl_s3_object} $SSL_KEY_PATH
-  chmod 600 $SSL_KEY_PATH
-  chown mongodb:mongodb $SSL_KEY_PATH
-
   REGEX=`echo http://${opsmanager_subdomain}:8080 | awk '{gsub("/", "\\\/");print}'`
   sed -i "s/mmsBaseUrl=.*/mmsBaseUrl=$REGEX/" /etc/mongodb-mms/automation-agent.config
   sed -i "s/mmsGroupId=.*/mmsGroupId=${mms_group_id}/" /etc/mongodb-mms/automation-agent.config
@@ -210,9 +205,6 @@ storage:
   journal:
     enabled: true
   engine: wiredTiger
-  wiredTiger:
-    engineConfig:
-      cacheSizeGB: 6
 
 systemLog:
   destination: file
