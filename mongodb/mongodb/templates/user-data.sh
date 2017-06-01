@@ -100,10 +100,25 @@ if [ "${role_opsmanager}" == "true" ]; then
   echo "mongodb-enterprise-mongos hold" | dpkg --set-selections
   echo "mongodb-enterprise-tools hold" | dpkg --set-selections
 
+  # NOTE: it sets mongodb user for everything inside! ("/opt/mongo")
   mkdir -p ${mongodb_basedir}
   chown mongodb:mongodb -R ${mongodb_basedir}
 
+  # explicit default owner for parent directory ("/opt")
+  chown root:root "$(dirname "${mongodb_basedir}")"
+
+  # NOTE: it sets the permission for everything inside! (in "/opt")
+  chmod 755 -R "$(dirname "${mongodb_basedir}")"
+
+  # ensure ./mongo/data directory exists
+  mkdir -p ${mongodb_basedir}/data
+  chown mongodb:mongodb ${mongodb_basedir}/data
+
+  # setup mongodb.key
   ENC_KEY_PATH=${mongodb_basedir}/mongodb.key
+  aws s3 --region=${aws_region} cp ${mongodb_key_s3_object} $ENC_KEY_PATH
+  chmod 600 $ENC_KEY_PATH
+  chown mongodb:mongodb $ENC_KEY_PATH
 
   cat << EOF > /etc/mongod.conf
 storage:
@@ -129,20 +144,11 @@ replication:
    oplogSizeMB: ${mongodb_conf_oplogsizemb}
 EOF
 
-  mkdir -p ${mongodb_basedir}/data
-  chown mongodb:mongodb -R ${mongodb_basedir}/data
-
-  aws s3 --region=${aws_region} cp ${mongodb_key_s3_object} $ENC_KEY_PATH
-  chmod 600 $ENC_KEY_PATH
-  chown mongodb:mongodb $ENC_KEY_PATH
-
   service mongod stop
   service mongod start
 
   curl -k -OL https://downloads.mongodb.com/on-prem-mms/deb/mongodb-mms_2.0.2.337-1_x86_64.deb
   DEBIAN_FRONTEND=noninteractive dpkg --force-confold --install mongodb-mms_2.0.2.337-1_x86_64.deb
-  mkdir -p ${mongodb_basedir}
-  chown mongodb:mongodb ${mongodb_basedir}
 
   cat << EOF > ${mongodb_basedir}/mms/conf/conf-mms.properties
 mongo.mongoUri=mongodb://mms-admin:${mms_password}@opsmanager-node-1.universe.com,opsmanager-node-2.universe.com,opsmanager-node-3.universe.com/?replicaSet=${mongodb_conf_replsetname}&maxPoolSize=150
@@ -157,9 +163,13 @@ EOF
   REGEX=`echo $MMS_KEY_PATH | awk '{gsub("/", "\\\/");print}'`
   sed -i "s/ENC_KEY_PATH=.*/ENC_KEY_PATH=$REGEX/" ${mongodb_basedir}/mms/conf/mms.conf
 
+  # ensure that ./mongo/backup directory exists to allow Backup Daemon to work on backups (mongodb-mms user)
   mkdir -p ${mongodb_basedir}/backup/snapshots
-  chown mongodb-mms:mongodb-mms ${mongodb_basedir}/backup
-  chown mongodb-mms:mongodb-mms ${mongodb_basedir}/backup/snapshots
+  chown mongodb-mms:mongodb-mms -R ${mongodb_basedir}/backup
+
+  # ensure that ./mongo/snapshots directory exists to allow Backup Daemon to store snapshots (mongodb-mms user)
+  mkdir -p ${mongodb_basedir}/snapshots
+  chown mongodb-mms:mongodb-mms -R ${mongodb_basedir}/snapshots
 
   service mongodb-mms stop
   service mongodb-mms start
