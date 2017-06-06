@@ -147,8 +147,8 @@ EOF
   service mongod stop
   service mongod start
 
-  curl -k -OL https://downloads.mongodb.com/on-prem-mms/deb/mongodb-mms_2.0.2.337-1_x86_64.deb
-  DEBIAN_FRONTEND=noninteractive dpkg --force-confold --install mongodb-mms_2.0.2.337-1_x86_64.deb
+  curl -k -OL https://downloads.mongodb.com/on-prem-mms/deb/mongodb-mms_3.4.5.424-1_x86_64.deb
+  DEBIAN_FRONTEND=noninteractive dpkg --force-confold --install mongodb-mms_3.4.5.424-1_x86_64.deb
 
   cat << EOF > ${mongodb_basedir}/mms/conf/conf-mms.properties
 mongo.mongoUri=mongodb://mms-admin:${mms_password}@opsmanager-node-1.universe.com,opsmanager-node-2.universe.com,opsmanager-node-3.universe.com/?replicaSet=${mongodb_conf_replsetname}&maxPoolSize=150
@@ -179,8 +179,8 @@ fi
 # Automation Agent (requires OpsManager available)
 #
 if [ "${role_node}" == "true" ]; then
-  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/automation/mongodb-mms-automation-agent-manager_2.5.16.1552-1_amd64.deb
-  DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-automation-agent-manager_2.5.16.1552-1_amd64.deb
+  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/automation/mongodb-mms-automation-agent-manager_latest_amd64.deb
+  DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-automation-agent-manager_latest_amd64.deb
 
   mkdir -p ${mongodb_basedir}
   chown mongodb:mongodb ${mongodb_basedir}
