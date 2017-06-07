@@ -179,8 +179,8 @@ fi
 # Automation Agent (requires OpsManager available)
 #
 if [ "${role_node}" == "true" ]; then
-  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/automation/mongodb-mms-automation-agent-manager_latest_amd64.deb
-  DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-automation-agent-manager_latest_amd64.deb
+  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/automation/mongodb-mms-automation-agent-manager_3.2.12.2107-1_amd64.deb
+  DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-automation-agent-manager_3.2.12.2107-1_amd64.deb
 
   mkdir -p ${mongodb_basedir}
   chown mongodb:mongodb ${mongodb_basedir}
@@ -243,7 +243,7 @@ EOF
   sed -i "s/\/etc\/default\/mongod/\/etc\/default\/mongod-backup/g" /etc/init/mongod-backup.conf
   service mongod-backup start
 
-  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/backup/mongodb-mms-backup-agent_latest_amd64.deb
-  dpkg --install mongodb-mms-backup-agent_latest_amd64.deb
+  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/backup/mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
+  dpkg --install mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
   service mongodb-mms-backup-agent start
 fi
