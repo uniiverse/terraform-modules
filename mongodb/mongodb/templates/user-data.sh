@@ -206,6 +206,24 @@ if [ "${role_node}" == "true" ]; then
 fi
 
 #
+# Monitoring Agent (requires OpsManager available)
+#
+if [ "${role_monitoring}" == "true" ]; then
+  sudo curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/monitoring/mongodb-mms-monitoring-agent_5.4.5.370-1_amd64.deb
+  sudo DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-monitoring-agent_5.4.5.370-1_amd64.deb
+
+  BASE_URL=`echo http://${opsmanager_subdomain}:8080 | awk '{gsub("/", "\\\/");print}'`
+  sed -i "s/mmsBaseUrl=.*/mmsBaseUrl=$BASE_URL/" /etc/mongodb-mms/monitoring-agent.config
+  sed -i "s/mmsApiKey=.*/mmsApiKey=${mms_api_key}/" /etc/mongodb-mms/monitoring-agent.config
+
+  # Monitoring Agent won't start without proper hostname resolution, but Route53 takes a few mins to propagate.
+  echo "`curl http://169.254.169.254/latest/meta-data/local-ipv4` ${hostname}" >> /etc/hosts
+
+  service mongodb-mms-monitoring-agent stop
+  service mongodb-mms-monitoring-agent start
+fi
+
+#
 # Backup Node (connects to OpsManager)
 #
 if [ "${role_backup}" == "true" ]; then
