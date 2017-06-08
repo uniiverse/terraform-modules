@@ -43,6 +43,9 @@ variable "role_opsmanager" {
 variable "role_backup" {
   default = "false"
 }
+variable "role_backup_agent" {
+  default = "false"
+}
 variable "role_arbiter" {
   default = "false"
 }
@@ -76,6 +79,7 @@ data "template_file" "user_data" {
     role_monitoring          = "${var.role_monitoring}"
     role_opsmanager          = "${var.role_opsmanager}"
     role_backup              = "${var.role_backup}"
+    role_backup_agent        = "${var.role_backup_agent}"
     mms_group_id             = "${var.mms_group_id}"
     mms_api_key              = "${var.mms_api_key}"
     mms_password             = "${var.mms_password}"

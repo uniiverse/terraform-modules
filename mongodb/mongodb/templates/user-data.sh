@@ -260,8 +260,21 @@ EOF
   sed -i "s/\/etc\/mongod.conf/\/etc\/mongod-backup.conf/g" /etc/init/mongod-backup.conf
   sed -i "s/\/etc\/default\/mongod/\/etc\/default\/mongod-backup/g" /etc/init/mongod-backup.conf
   service mongod-backup start
+fi
+
+#
+# Backup Agent (requires OpsManager available)
+#
+if [ "${role_backup_agent}" == "true" ]; then
+  # Backup Agent won't start without proper hostname resolution, but Route53 takes a few mins to propagate.
+  echo "`curl http://169.254.169.254/latest/meta-data/local-ipv4` ${hostname}" >> /etc/hosts
 
   curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/backup/mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
   dpkg --install mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
+
+  sed -i "s/mothership=.*/mothership=${opsmanager_subdomain}/" /etc/mongodb-mms/backup-agent.config
+  sed -i "s/mmsApiKey=.*/mmsApiKey=${mms_api_key}/" /etc/mongodb-mms/backup-agent.config
+
+  service mongodb-mms-backup-agent stop
   service mongodb-mms-backup-agent start
 fi
