@@ -201,6 +201,14 @@ if [ "${role_node}" == "true" ]; then
   # Automation Agent won't start without proper hostname resolution, but Route53 takes a few mins to propagate.
   echo "`curl http://169.254.169.254/latest/meta-data/local-ipv4` ${hostname}" >> /etc/hosts
 
+  # setup ssl certificates
+  SSL_PATH=/etc/mongodb/ssl
+  mkdir -p $SSL_PATH
+  aws s3 --region=${aws_region} cp ${mongodb_ssl_server_key_s3_object} $SSL_PATH/mongodb_ssl_server.pem
+  aws s3 --region=${aws_region} cp ${mongodb_ssl_client_key_s3_object} $SSL_PATH/mongodb_ssl_client.pem
+  chmod 700 -R $SSL_PATH
+  chown -R mongodb:mongodb $SSL_PATH
+
   service mongodb-mms-automation-agent stop
   service mongodb-mms-automation-agent start
 fi
