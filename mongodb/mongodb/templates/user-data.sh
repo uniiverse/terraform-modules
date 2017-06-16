@@ -216,16 +216,16 @@ fi
 #
 # Monitoring Agent (connects to OpsManager)
 #
-if [ "${role_monitoring}" == "true" ] ; then
+if [ "${role_monitoring_agent}" == "true" ] ; then
   # install
-  curl -k -OL http://opsmanager.universe.com:8080/download/agent/monitoring/mongodb-mms-monitoring-agent_5.4.5.370-1_amd64.deb
+  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/monitoring/mongodb-mms-monitoring-agent_5.4.5.370-1_amd64.deb
   DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-monitoring-agent_5.4.5.370-1_amd64.deb
 
   # setup for opsmanager
   MONITORING_AGENT_CONFIG_FILE=/etc/mongodb-mms/monitoring-agent.config
-  OPSMANAGER_URL=`echo http://${opsmanager_subdomain}:8080 | awk '{gsub("/", "\\\/");print}'`
-  sed -i "s/mmsBaseUrl=.*/mmsBaseUrl=$OPSMANAGER_URL/" $MONITORING_AGENT_CONFIG_FILE
-  sed -i "s/mmsApiKey=.*/mmsApiKey=${mms_api_key}/" $MONITORING_AGENT_CONFIG_FILE
+  ESCAPED_OPSMANAGER_URL=`echo http://${opsmanager_subdomain}:8080 | awk '{gsub("/", "\\\/");print}'`
+  sed -i "s/mmsBaseUrl=.*/mmsBaseUrl=$ESCAPED_OPSMANAGER_URL/"        $MONITORING_AGENT_CONFIG_FILE
+  sed -i "s/mmsApiKey=.*/mmsApiKey=${mms_api_key}/"                   $MONITORING_AGENT_CONFIG_FILE
 
   # setup ssl certificates for monitoring agents
   SSL_PATH=/etc/mongodb-mms/ssl
@@ -240,6 +240,36 @@ if [ "${role_monitoring}" == "true" ] ; then
 
   stop mongodb-mms-monitoring-agent
   start mongodb-mms-monitoring-agent
+fi
+
+#
+# Backup Agent (connects to OpsManager)
+#
+if [ "${role_backup_agent}" == "true" ] ; then
+  # install
+  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/backup/mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
+  DEBIAN_FRONTEND=noninteractive dpkg --install mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
+
+  # setup for opsmanager
+  BACKUP_AGENT_CONFIG_FILE=/etc/mongodb-mms/backup-agent.config
+  chmod 644 $BACKUP_AGENT_CONFIG_FILE
+  chown mongodb:mongodb $BACKUP_AGENT_CONFIG_FILE
+  sed -i "s/mmsApiKey=.*/mmsApiKey=${mms_api_key}/"                 $BACKUP_AGENT_CONFIG_FILE
+  sed -i "s/mothership=.*/mothership=${opsmanager_subdomain}:8080/" $BACKUP_AGENT_CONFIG_FILE
+
+  # setup ssl certificates for monitoring agents
+  SSL_PATH=/etc/mongodb-mms/ssl
+  mkdir -p $SSL_PATH
+  aws s3 --region=${aws_region} cp ${mongodb_ssl_server_key_s3_object} $SSL_PATH/mongodb_ssl_server.pem
+  aws s3 --region=${aws_region} cp ${mongodb_ssl_client_key_s3_object} $SSL_PATH/mongodb_ssl_client.pem
+  chmod 700 -R $SSL_PATH
+  chown -R mongodb-mms-agent:mongodb-mms-agent $SSL_PATH
+  echo "sslTrustedServerCertificates=$SSL_PATH/mongodb_ssl_server.pem" >> $BACKUP_AGENT_CONFIG_FILE
+  echo "sslClientCertificate=$SSL_PATH/mongodb_ssl_client.pem"         >> $BACKUP_AGENT_CONFIG_FILE
+  echo "sslRequireValidServerCertificates=true"                        >> $BACKUP_AGENT_CONFIG_FILE
+
+  stop mongodb-mms-backup-agent
+  start mongodb-mms-backup-agent
 fi
 
 #
@@ -279,8 +309,4 @@ EOF
   sed -i "s/\/etc\/mongod.conf/\/etc\/mongod-backup.conf/g" /etc/init/mongod-backup.conf
   sed -i "s/\/etc\/default\/mongod/\/etc\/default\/mongod-backup/g" /etc/init/mongod-backup.conf
   service mongod-backup start
-
-  curl -k -OL http://${opsmanager_subdomain}:8080/download/agent/backup/mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
-  dpkg --install mongodb-mms-backup-agent_5.0.7.494-1_amd64.deb
-  service mongodb-mms-backup-agent start
 fi

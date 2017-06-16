@@ -36,7 +36,10 @@ variable "config_ebs" {
 variable "role_node" {
   default = "false"
 }
-variable "role_monitoring" {
+variable "role_monitoring_agent" {
+  default = "false"
+}
+variable "role_backup_agent" {
   default = "false"
 }
 variable "role_opsmanager" {
@@ -77,7 +80,8 @@ data "template_file" "user_data" {
     config_ephemeral         = "${var.config_ephemeral}"
     config_ebs               = "${var.config_ebs}"
     role_node                = "${var.role_node}"
-    role_monitoring          = "${var.role_monitoring}"
+    role_monitoring_agent    = "${var.role_monitoring_agent}"
+    role_backup_agent        = "${var.role_backup_agent}"
     role_opsmanager          = "${var.role_opsmanager}"
     role_backup              = "${var.role_backup}"
     mms_group_id             = "${var.mms_group_id}"
