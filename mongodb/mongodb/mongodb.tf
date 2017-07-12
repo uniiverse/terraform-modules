@@ -6,8 +6,9 @@ variable "mongodb_conf_engine"      {}
 variable "mongodb_conf_replsetname" {}
 variable "mongodb_conf_oplogsizemb" {}
 variable "mongodb_key_s3_object"    {}
-variable "mongodb_ssl_server_key_s3_object" {}
-variable "mongodb_ssl_client_key_s3_object" {}
+variable "ssl_ca_key_s3_object"     {}
+variable "ssl_agent_key_s3_object"  {}
+variable "ssl_mongod_key_s3_object" {}
 variable "opsmanager_key_s3_object" {}
 variable "mongodb_iam_name"         {}
 variable "mongodb_sg_id"            {}
@@ -34,12 +35,6 @@ variable "config_ebs" {
 }
 
 variable "role_node" {
-  default = "false"
-}
-variable "role_monitoring_agent" {
-  default = "false"
-}
-variable "role_backup_agent" {
   default = "false"
 }
 variable "role_opsmanager" {
@@ -71,8 +66,9 @@ data "template_file" "user_data" {
     mongodb_conf_replsetname = "${var.mongodb_conf_replsetname}"
     mongodb_conf_oplogsizemb = "${var.mongodb_conf_oplogsizemb}"
     mongodb_key_s3_object    = "${var.mongodb_key_s3_object}"
-    mongodb_ssl_server_key_s3_object = "${var.mongodb_ssl_server_key_s3_object}"
-    mongodb_ssl_client_key_s3_object = "${var.mongodb_ssl_client_key_s3_object}"
+    ssl_ca_key_s3_object     = "${var.ssl_ca_key_s3_object}"
+    ssl_mongod_key_s3_object = "${var.ssl_mongod_key_s3_object}"
+    ssl_agent_key_s3_object  = "${var.ssl_agent_key_s3_object}"
     opsmanager_key_s3_object = "${var.opsmanager_key_s3_object}"
     opsmanager_subdomain     = "${var.opsmanager_subdomain}"
     hostname                 = "${var.route53_hostname}"
@@ -80,8 +76,6 @@ data "template_file" "user_data" {
     config_ephemeral         = "${var.config_ephemeral}"
     config_ebs               = "${var.config_ebs}"
     role_node                = "${var.role_node}"
-    role_monitoring_agent    = "${var.role_monitoring_agent}"
-    role_backup_agent        = "${var.role_backup_agent}"
     role_opsmanager          = "${var.role_opsmanager}"
     role_backup              = "${var.role_backup}"
     mms_group_id             = "${var.mms_group_id}"
