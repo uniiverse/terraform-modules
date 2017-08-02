@@ -172,7 +172,7 @@ EOF
   chown mongodb-mms:mongodb-mms -R ${mongodb_basedir}/snapshots
 
   service mongodb-mms stop
-  service mongodb-mms start
+  service mongodb-mms start # NOTE: run mv /opt/mongodb/mms /opt/mongodb/mms-old if it fails and try to reinstall again
 fi
 
 #
