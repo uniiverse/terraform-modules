@@ -126,6 +126,9 @@ storage:
   journal:
     enabled: true
   engine: ${mongodb_conf_engine}
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: 10
 
 systemLog:
   destination: file
@@ -224,6 +227,9 @@ storage:
   journal:
     enabled: true
   engine: wiredTiger
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: 10
 
 systemLog:
   destination: file
